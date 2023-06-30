@@ -1,6 +1,6 @@
 # AMQ Broker OpenShift Resource Dump Script
 
-This script allows you to dump resources, status, and logs of an AMQ Broker running on OpenShift. It provides a comprehensive report that includes various Kubernetes and AMQ Broker resources.
+This script allows you to dump resources, status, and logs of an AMQ Broker running on OpenShift. It provides a comprehensive report that includes various OpenShift and AMQ Broker resources.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This script allows you to dump resources, status, and logs of an AMQ Broker runn
 
 ## Options
 
-`--namespace=<string>`: Specify the Kubernetes namespace where the AMQ Broker is deployed  (Required).
+`--namespace=<string>`: Specify the OpenShift namespace where the AMQ Broker is deployed  (Required).
 
 `--cluster=<string>`: Specify the name of the AMQ Broker cluster (Required).
 
