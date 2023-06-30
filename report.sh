@@ -236,7 +236,7 @@ else
   CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
   if [[ -n $CO_POD ]]; then
     echo "    $CO_POD"
-      logs="$($KUBE_CLIENT -n "$NAMESPACE" logs "$pod" ||true)"
+      logs="$($KUBE_CLIENT -n "openshift-operators" logs "$pod" ||true)"
       if [[ -n $logs ]]; then printf "%s" "$logs" > "$OUT_DIR"/reports/podlogs/"$pod".log; fi
   fi
 fi
