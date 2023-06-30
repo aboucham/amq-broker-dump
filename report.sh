@@ -221,7 +221,7 @@ get_pod_logs() {
 echo "clusteroperator"
 CO_DEPLOY=$($KUBE_CLIENT get deploy amq-broker-controller-manager -o name -n "$NAMESPACE" --ignore-not-found) && readonly CO_DEPLOY
 if [[ -n $CO_DEPLOY ]]; then
-  echo "    $CO_DEPLOY"
+  echo "$CO_DEPLOY"
   $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "$NAMESPACE" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
   $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "$NAMESPACE" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
   CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "$NAMESPACE" --ignore-not-found)
@@ -230,6 +230,14 @@ if [[ -n $CO_DEPLOY ]]; then
     CO_POD=$(echo "$CO_POD" | cut -d "/" -f 2) && readonly CO_POD
     get_pod_logs "$CO_POD"
   fi
+  else
+  $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
+  $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
+  CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
+  if [[ -n $CO_POD ]]; then
+    echo "    $CO_POD"
+    CO_POD=$(echo "$CO_POD" | cut -d "/" -f 2) && readonly CO_POD
+    get_pod_logs "$CO_POD"
 fi
 
 CO_RS=$($KUBE_CLIENT get rs -l name=amq-broker-operator -o name -n "$NAMESPACE" --ignore-not-found)
