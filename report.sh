@@ -236,7 +236,7 @@ else
   CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
   if [[ -n $CO_POD ]]; then
     echo "    $CO_POD"
-    $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD" > "$OUT_DIR"/reports/podlogs/"$CO_POD".log
+    $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD" > "$OUT_DIR"/reports/podlogs/amq-broker-controller-manager.log
   fi
 fi
 
