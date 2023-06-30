@@ -233,12 +233,12 @@ if [[ -n $CO_DEPLOY ]]; then
 else
   $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
   $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
-  CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
-  if [[ -n $CO_POD ]]; then
-    echo "    $CO_POD"
+  CO_POD_NS=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
+  if [[ -n $CO_POD_NS ]]; then
+    echo "-   $CO_POD_NS"
     #get_pod_logs "$CO_POD"
     mkdir -p "$OUT_DIR"/reports/podlogs
-    $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD" > "$OUT_DIR"/reports/podlogs/amq-broker-controller-manager.log
+    $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD_NS" > "$OUT_DIR"/reports/podlogs/amq-broker-controller-manager.log
   fi
 fi
 
