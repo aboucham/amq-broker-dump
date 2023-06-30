@@ -227,7 +227,6 @@ if [[ -n $CO_DEPLOY ]]; then
   CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "$NAMESPACE" --ignore-not-found)
   if [[ -n $CO_POD ]]; then
     echo "    $CO_POD"
-    mkdir -p "$OUT_DIR"/reports/podlogs
     CO_POD=$(echo "$CO_POD" | cut -d "/" -f 2) && readonly CO_POD
     get_pod_logs "$CO_POD"
   fi
@@ -237,6 +236,8 @@ else
   CO_POD=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
   if [[ -n $CO_POD ]]; then
     echo "    $CO_POD"
+    #get_pod_logs "$CO_POD"
+    mkdir -p "$OUT_DIR"/reports/podlogs
     $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD" > "$OUT_DIR"/reports/podlogs/amq-broker-controller-manager.log
   fi
 fi
