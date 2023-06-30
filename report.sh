@@ -239,6 +239,7 @@ if [ -z "$CO_DEPLOY" ]; then
     echo "    $CO_POD"
     CO_POD=$(echo "$CO_POD" | cut -d "/" -f 2) && readonly CO_POD
     get_pod_logs "$CO_POD"
+  fi
 fi
 
 CO_RS=$($KUBE_CLIENT get rs -l name=amq-broker-operator -o name -n "$NAMESPACE" --ignore-not-found)
