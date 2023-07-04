@@ -231,6 +231,8 @@ if [[ -n $CO_DEPLOY ]]; then
     get_pod_logs "$CO_POD"
   fi
 else
+  if $KUBE_CLIENT get namespace openshift-operators &> /dev/null; then
+    echo "Namespace 'openshift-operators' exists."
   $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
   $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
   CO_POD_NS=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
@@ -239,6 +241,9 @@ else
     #get_pod_logs "$CO_POD"
     mkdir -p "$OUT_DIR"/reports/podlogs
     $KUBE_CLIENT -n "openshift-operators" logs "$CO_POD_NS" > "$OUT_DIR"/reports/podlogs/amq-broker-controller-manager.log
+  fi
+  else
+    echo "Namespace 'openshift-operators' not found. Skipping commands specific to that namespace."
   fi
 fi
 
