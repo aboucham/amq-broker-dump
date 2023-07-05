@@ -262,10 +262,10 @@ mkdir -p "$OUT_DIR"/reports/crds "$OUT_DIR"/reports/crs
 GREP_PATH=$(whereis -b grep | awk '{print $2}')
 
 CRDS=$($KUBE_CLIENT get crd -o name | "$GREP_PATH" -E "activemqartemis" | cut -d "/" -f 2) && readonly CRDS
-echo "    $CRDS"
 for CRD in $CRDS; do
   RES=$($KUBE_CLIENT get "$CRD" -o name -n "$NAMESPACE" | cut -d "/" -f 2)
   if [[ -n $RES ]]; then
+    echo "    $CRD"
     $KUBE_CLIENT get crd "$CRD" -o yaml > "$OUT_DIR"/reports/crds/"$CRD".yaml
     for j in $RES; do
       RES=$(echo "$j" | cut -f 1 -d " ")
