@@ -258,9 +258,10 @@ fi
 echo "customresources"
 mkdir -p "$OUT_DIR"/reports/crds "$OUT_DIR"/reports/crs
 #CRDS=$($KUBE_CLIENT get crd -l operators.coreos.com/amq-broker-rhel8.openshift-operators -o name | cut -d "/" -f 2) && readonly CRDS
-#CRDS=$($KUBE_CLIENT get crd -o name |grep activemqartemis | cut -d "/" -f 2) && readonly CRDS
-#CRDS=$($KUBE_CLIENT get crd -o name | grep activemqartemis | cut -d "/" -f 2) && readonly CRDS
-CRDS=$($KUBE_CLIENT get crd -o name | grep -E "activemqartemis" | cut -d "/" -f 2) && readonly CRDS
+# Find the path of the grep command
+GREP_PATH=$(whereis -b grep | awk '{print $2}')
+
+CRDS=$($KUBE_CLIENT get crd -o name | "$GREP_PATH" -E "activemqartemis" | cut -d "/" -f 2) && readonly CRDS
 echo "    $CRDS"
 for CRD in $CRDS; do
   RES=$($KUBE_CLIENT get "$CRD" -o name -n "$NAMESPACE" | cut -d "/" -f 2)
