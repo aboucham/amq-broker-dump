@@ -265,9 +265,9 @@ CRDS=$($KUBE_CLIENT get crd -o name | "$GREP_PATH" -E "activemqartemis" | cut -d
 echo "    $CRDS"
 for CRD in $CRDS; do
   RES=$($KUBE_CLIENT get "$CRD" -o name -n "$NAMESPACE" | cut -d "/" -f 2)
-  echo "    $RES"
+  echo "        $RES"
   if [[ -n $RES ]]; then
-    echo "    $CRD"
+    echo "            $CRD"
     $KUBE_CLIENT get crd "$CRD" -o yaml > "$OUT_DIR"/reports/crds/"$CRD".yaml
     for j in $RES; do
       RES=$(echo "$j" | cut -f 1 -d " ")
