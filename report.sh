@@ -257,7 +257,8 @@ fi
 
 echo "customresources"
 mkdir -p "$OUT_DIR"/reports/crds "$OUT_DIR"/reports/crs
-CRDS=$($KUBE_CLIENT get crd -l operators.coreos.com/amq-broker-rhel8.openshift-operators -o name | cut -d "/" -f 2) && readonly CRDS
+#CRDS=$($KUBE_CLIENT get crd -l operators.coreos.com/amq-broker-rhel8.openshift-operators -o name | cut -d "/" -f 2) && readonly CRDS
+CRDS=$($KUBE_CLIENT get crd -o name | grep activemqartemis | cut -d "/" -f 2) && readonly CRDS
 for CRD in $CRDS; do
   RES=$($KUBE_CLIENT get "$CRD" -o name -n "$NAMESPACE" | cut -d "/" -f 2)
   if [[ -n $RES ]]; then
