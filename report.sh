@@ -233,8 +233,14 @@ if [[ -n $CO_DEPLOY ]]; then
 else
   if $KUBE_CLIENT get namespace openshift-operators &> /dev/null; then
     echo "Namespace 'openshift-operators' exists."
-  $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
-  $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
+    CO_DEPLOY_NS=$($KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators")
+    if [[ -n $CO_DEPLOY_NS ]]; then
+      $KUBE_CLIENT get deploy amq-broker-controller-manager -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/deployments/cluster-operator.yaml
+    fi
+    CO_POD_YAML=$($KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators")
+    if [[ -n $CO_DEPLOY_NS ]]; then
+    $KUBE_CLIENT get po -l name=amq-broker-operator -o yaml -n "openshift-operators" > "$OUT_DIR"/reports/pods/cluster-operator.yaml
+    fi
   CO_POD_NS=$($KUBE_CLIENT get po -l name=amq-broker-operator -o name -n "openshift-operators" --ignore-not-found)
   if [[ -n $CO_POD_NS ]]; then
     echo "-   $CO_POD_NS"
