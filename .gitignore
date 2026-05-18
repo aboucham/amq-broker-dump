@@ -1,0 +1,38 @@
+# Generated report files
+report-*.zip
+
+# Temporary directories
+reports/
+foo/
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log.0
+
+# Test files
+/tmp/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Documentation files (keep only README.md)
+*_*.md
+PHASE1*.md
+AUTO_DISCOVERY*.md
+EXTRAMOUNTS*.md
+PROJECT_STATUS.md
+COMPLETE_ENHANCEMENTS_SUMMARY.md
+DEMO_*.md
+
+# Claude Code settings
+.claude/
+
+# Old/backup files
+-report.sh
