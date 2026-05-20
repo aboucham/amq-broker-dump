@@ -238,6 +238,18 @@ if [[ "$SECRETS_OPT" == "off" ]]; then
   RESOURCES=("${RESOURCES[@]/secrets}") && readonly RESOURCES
 fi
 
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Starting resource collection for AMQ Broker cluster"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Namespace: $NAMESPACE"
+echo "  Cluster: $CLUSTER"
+echo "  Secrets: $SECRETS_OPT"
+echo "  Output: $OUT_DIR"
+echo ""
+echo "Collecting namespace-scoped resources..."
+echo ""
+
 get_masked_secrets() {
   echo "secrets"
   mkdir -p "$OUT_DIR"/reports/secrets
@@ -282,19 +294,39 @@ done
 get_nonnamespaced_yamls() {
   local type="$1"
   mkdir -p "$OUT_DIR"/reports/"$type"
-  local resources && resources=$($KUBE_CLIENT get "$type" -l ActiveMQArtemis=$CLUSTER -o name -n "$NAMESPACE")
+  local resources
+  local error_output
+  error_output=$($KUBE_CLIENT get "$type" -l ActiveMQArtemis=$CLUSTER -o name 2>&1)
+  local exit_code=$?
+
+  if [[ $exit_code -ne 0 ]]; then
+    if [[ "$error_output" == *"Forbidden"* ]] || [[ "$error_output" == *"forbidden"* ]]; then
+      echo "$type (⚠️  skipped - insufficient cluster permissions)"
+      return 0
+    else
+      echo "$type (⚠️  skipped - not accessible)"
+      return 0
+    fi
+  fi
+
+  resources=$(echo "$error_output")
   echo "$type"
-  for res in $resources; do
-    local resources && resources=$($KUBE_CLIENT get "$type" -l ActiveMQArtemis=$CLUSTER -o name -n "$NAMESPACE")
-    echo "    $res"
-    res=$(echo "$res" | cut -d "/" -f 2)
-    $KUBE_CLIENT get "$type" "$res" -o yaml | sed "$SE" > "$OUT_DIR"/reports/"$type"/"$res".yaml
-  done
+
+  if [[ -n $resources ]]; then
+    for res in $resources; do
+      echo "    $res"
+      res=$(echo "$res" | cut -d "/" -f 2)
+      $KUBE_CLIENT get "$type" "$res" -o yaml 2>/dev/null | sed "$SE" > "$OUT_DIR"/reports/"$type"/"$res".yaml || echo "        (failed to retrieve)"
+    done
+  fi
 }
 
+echo ""
+echo "Collecting cluster-scoped resources (may require cluster admin rights)..."
 for RES in "${CLUSTER_RESOURCES[@]}"; do
   get_nonnamespaced_yamls "$RES"
 done
+echo ""
 
 get_pod_logs() {
   local pod="$1"
@@ -470,5 +502,26 @@ if [[ $OUT_DIR == *"tmp."* ]]; then
   # let's keep the old behavior when --out-dir is not specified
   mv "$OUT_DIR"/"$FILENAME".zip ./
 fi
-echo "Report file $FILENAME.zip created"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✓ Report successfully created: $FILENAME.zip"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Summary:"
+echo "  Namespace: $NAMESPACE"
+echo "  Cluster: $CLUSTER"
+echo "  Output: $FILENAME.zip"
+echo ""
+
+# Check if cluster-scoped resources directory exists and is empty
+if [[ -d "$OUT_DIR/reports/clusterroles" ]] && [[ -z "$(ls -A "$OUT_DIR/reports/clusterroles" 2>/dev/null)" ]] && \
+   [[ -d "$OUT_DIR/reports/clusterrolebindings" ]] && [[ -z "$(ls -A "$OUT_DIR/reports/clusterrolebindings" 2>/dev/null)" ]]; then
+  echo "Note: Cluster-scoped resources (clusterroles, clusterrolebindings) were skipped"
+  echo "      due to insufficient cluster permissions. This is normal for non-admin users."
+  echo ""
+fi
+
+echo "Report collected successfully!"
+echo ""
 } # this ensures the entire script is downloaded #
