@@ -51,10 +51,10 @@ $KUBE_CLIENT version -o yaml --request-timeout=5s 1>/dev/null
 readonly USAGE="
 Usage: report.sh [options]
 
-Interactive mode (auto-discovery):
+Interactive mode (auto-discovery - requires cluster admin rights):
   ./report.sh                   Discover all AMQ Broker clusters and select interactively.
 
-Manual mode:
+Manual mode (works without cluster admin rights):
   --namespace=<string>          Kubernetes namespace.
   --cluster=<string>            AMQ Broker cluster name.
 
@@ -63,9 +63,15 @@ Optional:
   --out-dir=<string>            Script output directory.
 
 Examples:
-  ./report.sh                                           # Interactive mode
-  ./report.sh --namespace=amq --cluster=broker-prod     # Manual mode
+  # Interactive mode (requires cluster-wide permissions)
+  ./report.sh
+
+  # Manual mode (local script)
+  ./report.sh --namespace=amq --cluster=broker-prod
   ./report.sh --namespace=amq --cluster=broker-prod --secrets=all --out-dir=~/Downloads
+
+  # Manual mode (remote via curl - useful without cluster admin rights)
+  bash <(curl -sLk \"https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh\") --namespace=broker --cluster=broker
 "
 OPTSPEC=":-:"
 while getopts "$OPTSPEC" optchar; do
@@ -116,12 +122,26 @@ if [[ -z $NAMESPACE || -z $CLUSTER ]]; then
   AMQ_INSTANCES=$($KUBE_CLIENT get activemqartemises.broker.amq.io --all-namespaces --no-headers -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name 2>/dev/null)
 
   if [[ -z $AMQ_INSTANCES ]]; then
-    echo "No AMQ Broker clusters found or insufficient permissions to scan all namespaces."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "⚠️  INSUFFICIENT CLUSTER ADMIN RIGHTS DETECTED"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    echo "Please specify --namespace and --cluster manually:"
-    echo "  Example: $0 --namespace=amq --cluster=broker-prod"
+    echo "Unable to auto-discover AMQ Broker clusters across all namespaces."
+    echo "This typically means you don't have cluster-wide permissions."
     echo ""
-    error "$USAGE"
+    echo "Please use MANUAL MODE by specifying the namespace and cluster name:"
+    echo ""
+    echo "  bash <(curl -sLk \"https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh\") \\"
+    echo "    --namespace=<YOUR_NAMESPACE> \\"
+    echo "    --cluster=<YOUR_CLUSTER_NAME>"
+    echo ""
+    echo "Example:"
+    echo "  bash <(curl -sLk \"https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh\") \\"
+    echo "    --namespace=broker \\"
+    echo "    --cluster=broker"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    exit 1
   fi
 
   # Display found clusters
