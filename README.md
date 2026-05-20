@@ -6,15 +6,25 @@ This script allows you to dump resources, status, and logs of an AMQ Broker runn
 
 - `kubectl` or `oc` command-line tools installed and configured to access your OpenShift cluster.
 - Permissions to access the AMQ Broker resources and namespace.
+- **For Interactive Mode**: Cluster-wide permissions (cluster admin rights) to auto-discover brokers across all namespaces.
+- **For Manual Mode**: Namespace-level permissions are sufficient.
 
 ## Usage
 
 ### Interactive Mode (Auto-Discovery) - NEW! ✨
 
+**Requires cluster admin rights** to scan all namespaces.
+
 Simply run the script without arguments to automatically discover all AMQ Broker clusters:
 
 ```shell
 ./report.sh
+```
+
+Or remotely via curl:
+
+```shell
+bash <(curl -sLk "https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh")
 ```
 
 The script will:
@@ -41,16 +51,33 @@ Select cluster number (1-3) or 'q' to quit: 1
 Report file report-18-05-2026_15-45-30.zip created
 ```
 
-### Manual Mode (Original)
+### Manual Mode
 
-If you know the namespace and cluster name, or for automation:
+**Works without cluster admin rights** - only requires namespace-level permissions.
 
+Use this mode if you know the namespace and cluster name, or if you don't have cluster-wide permissions:
+
+#### Local Script
 1. Download the `report.sh` script.
 2. Make the script executable: `chmod +x report.sh`
 3. Run the script with the following options:
 
 ```shell
 ./report.sh --namespace=<namespace> --cluster=<cluster> [options]
+```
+
+#### Remote via curl (Recommended for users without cluster admin)
+```shell
+bash <(curl -sLk "https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh") \
+  --namespace=<namespace> \
+  --cluster=<cluster>
+```
+
+**Example:**
+```shell
+bash <(curl -sLk "https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh") \
+  --namespace=broker \
+  --cluster=broker
 
 ## Options
 
@@ -75,14 +102,24 @@ If you know the namespace and cluster name, or for automation:
 
 ### Manual Mode
 ```shell
-# Basic usage
+# Basic usage (local script)
 ./report.sh --namespace=my-namespace --cluster=my-broker
+
+# Remote via curl (works without cluster admin rights)
+bash <(curl -sLk "https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh") \
+  --namespace=my-namespace \
+  --cluster=my-broker
 
 # With all options
 ./report.sh --namespace=my-namespace --cluster=my-broker --secrets=all --out-dir=/path/to/output
 
-# Piped from URL (for quick diagnostics)
-curl -sLk "https://raw.githubusercontent.com/.../report.sh" | bash -s -- --namespace=my-namespace --cluster=my-broker
+# Remote with all options
+bash <(curl -sLk "https://raw.githubusercontent.com/aboucham/amq-broker-dump/refs/heads/main/report.sh") \
+  --namespace=my-namespace \
+  --cluster=my-broker \
+  --secrets=all \
+  --out-dir=/path/to/output
+```
 
 
 ## Output
@@ -93,6 +130,25 @@ YAML files for custom resources and their corresponding instances.
 Log files for AMQ Broker pods.
 Configuration files used by the AMQ Broker, such as artemis-roles.properties, artemis-users.properties, broker.xml, etc.
 The report is organized into different directories based on the resource types and includes subdirectories for secrets, pods, replicasets, deployments, config maps, and custom resources.
+
+## Permissions and Auto-Discovery
+
+### If You Don't Have Cluster Admin Rights
+
+When you run the script in **Interactive Mode** without cluster-wide permissions, you'll see:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  INSUFFICIENT CLUSTER ADMIN RIGHTS DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Unable to auto-discover AMQ Broker clusters across all namespaces.
+This typically means you don't have cluster-wide permissions.
+
+Please use MANUAL MODE by specifying the namespace and cluster name:
+```
+
+Simply switch to **Manual Mode** with the provided curl command - no cluster admin rights needed!
 
 ## Important Notes
 
